@@ -86,3 +86,63 @@
 	- сформирует служебное сообщение, куда поместит свои хеши
 	- в итоге базы источник и приемник будут содержать хеши друг друга
 	- сверить данные можно через отчет __рдв_СверкаПолнотыТочностиДанных__
+
+![Описание изображения](../images/schema_of_hash_transfer.png)
+
+
+```
+@startuml
+
+title Модуль интеграции: двусторонний обмен хешами объектов
+
+actor "Пользователь" as User
+
+queue "Формирование хешей объектов" as HashQueue
+
+database "Регистр рдв_ХешиСообщенийИнтеграции" as HashReg
+database "Регистр рдв_РегистрацияИзменений" as ChangeReg
+database "Регистр рдв_ИдентификаторыОбъектовИсточника" as IdReg
+database "Регистр рдв_СообщенияИнтеграции" as MessageReg
+
+entity "Внешняя система" as ExternalSystem
+database "рдв_ХешиСообщенийИнтеграции\n(во внешней системе)" as ExternalHashReg
+queue "Формирование хешей объектов\n(внешняя система)" as ExternalHashQueue
+database "Регистры изменений\n(внешняя система)" as ExternalChangeReg
+
+User -> HashQueue : Запись объекта
+HashQueue -> HashQueue : Обработка очереди
+HashQueue -> HashReg : Расчет и запись хеша объекта
+
+HashReg --> ChangeReg : Подписка на событие изменения
+HashReg -> ChangeReg : Фиксирует факт изменения
+
+ChangeReg -> IdReg : Определение маршрута сообщения
+IdReg --> ChangeReg : Данные об источнике
+
+ChangeReg -> MessageReg : Формирование записи сообщения
+MessageReg -> ExternalSystem : Отправка сообщения с хешем
+
+ExternalSystem -> ExternalHashReg : Запись полученного хеша
+
+ExternalSystem -> ExternalHashQueue : Запись объекта для обработки
+ExternalHashQueue -> ExternalHashQueue : Обработка очереди
+ExternalHashQueue -> ExternalHashReg : Расчет и запись ответного хеша
+
+ExternalHashReg --> ExternalChangeReg : Подписка на событие изменения
+ExternalHashReg -> ExternalChangeReg : Фиксирует факт изменения
+
+ExternalChangeReg -> ExternalSystem : Формирование ответного сообщения
+ExternalSystem -> MessageReg : Отправка ответного хеша обратно
+
+MessageReg -> HashReg : Запись ответного хеша от внешней системы
+
+note right of ChangeReg
+  Механизм определяет маршрут:
+  - Если база-источник: ИмяПравил.Хеш
+  - Если база-приемник: ИмяБазыИсточника.Хеш
+  (через регистр рдв_ИдентификаторыОбъектовИсточника)
+end note
+
+@enduml
+
+```
