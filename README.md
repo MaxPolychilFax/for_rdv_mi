@@ -8,4 +8,4 @@
 - [Настроить решение в режиме предприятия](./admin_instruction/how_to_1c.md) - логины, пароли, пути
 - [Настроить RMQ](./admin_instruction/how_to_RMQ.md) - если хотите работать через RabbitMQ
 - [Настроить HTTP](./admin_instruction/how_to_HTTP.md) - если выбран данный вид транспорта
-- [для подключения других механизмов транспорта](./developer_instruction/3%202%20new%20transport.md)
+- [подключить другие механизмы транспорта](./developer_instruction/3%202%20new%20transport.md) - если RMQ и HTTP не достаточно
